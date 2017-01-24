@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class Player : MovingObject {
@@ -10,6 +11,7 @@ public class Player : MovingObject {
     public int pointsPerFood = 10;
     public int pointsPerSoda = 20;
     public float restartLevelDelay = 1f;
+    public Text foodText;
 
     private Animator animator;
     private int food;
@@ -17,6 +19,8 @@ public class Player : MovingObject {
 	protected override void Start () {
         animator = GetComponent<Animator>();
         food = GameManager.instance.playerFoodPoint;
+
+        updateFoodText();
 
         base.Start();
 	}
@@ -53,11 +57,13 @@ public class Player : MovingObject {
 
             case "Food":
                 food += pointsPerFood;
+                pickUpFoodTextUpdate(pointsPerFood);
                 collision.gameObject.SetActive(false);
                 break;
 
             case "Soda":
                 food += pointsPerSoda;
+                pickUpFoodTextUpdate(pointsPerSoda);
                 collision.gameObject.SetActive(false);
                 break;
 
@@ -83,6 +89,7 @@ public class Player : MovingObject {
     {
         animator.SetTrigger("playerHit");
         food -= loss;
+        foodText.text = "-" + loss + " Food: " + food;
 
         CheckIfGameOver();
     }
@@ -90,6 +97,7 @@ public class Player : MovingObject {
     protected override void AttempMove<T>(int xDir, int yDir)
     {
         food--;
+        updateFoodText();
 
         base.AttempMove<T>(xDir, yDir);
 
@@ -104,5 +112,15 @@ public class Player : MovingObject {
     {
         if (food <= 0)
             GameManager.instance.GameOver();
+    }
+
+    private void updateFoodText()
+    {
+        foodText.text = "Food: " + food;
+    }
+
+    private void pickUpFoodTextUpdate(int points)
+    {
+        foodText.text = "+" + points + " Food: " + food;
     }
 }
