@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
+    public float turnDelay = .1f;
     public BoardManager boardScript;
     public static GameManager instance = null;
     public int playerFoodPoint = 100;
@@ -11,21 +12,25 @@ public class GameManager : MonoBehaviour {
     public bool playersTurn = true;
 
     private int level = 3;
+    private List<Enemy> enemies;
+    private bool enemiesMoving;
 
     void Awake()
     {
         if (instance == null)
             instance = this;
         else
-            Destroy(this);
+            Destroy(gameObject);
 
         DontDestroyOnLoad(gameObject);
+        enemies = new List<Enemy>();
         boardScript = GetComponent<BoardManager>();
         InitGame();
     }
 
     void InitGame()
     {
+        enemies.Clear();
         boardScript.SetupScene(level);
     }
 
@@ -33,9 +38,35 @@ public class GameManager : MonoBehaviour {
     {
         enabled = false;
     }
+
+    IEnumerator MoveEnemies()
+    {
+        enemiesMoving = true;
+        yield return new WaitForSeconds(turnDelay);
+
+        if (enemies.Count == 0)
+            yield return new WaitForSeconds(turnDelay);
+
+        for(int i = 0; i < enemies.Count; i++)
+        {
+            enemies[i].MoveEnemy();
+            yield return new WaitForSeconds(enemies[i].moveTime);
+        }
+
+        playersTurn = true;
+        enemiesMoving = false;
+    }
+
+    public void AddEnemyToList(Enemy script)
+    {
+        enemies.Add(script);
+    }
 	
 	// Update is called once per frame
 	void Update () {
-		
+        if (playersTurn || enemiesMoving)
+            return;
+
+        StartCoroutine(MoveEnemies());
 	}
 }
